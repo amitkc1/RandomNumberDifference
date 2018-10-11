@@ -14,12 +14,13 @@ public:
     RandomNumberSet();
     RandomNumberSet(int n);
     std::bitset<100> randomNumberBitset;
+    vector<int> bitsetIndices;
     void reset();
     bool set(int n);
     int size() const;;
+    vector<int> storeIndices();
     vector <int> differenceVector;
     vector <bool> randomNumberBitVector;
-    std::vector<int>::iterator difference;
     friend ostream& operator<<(ostream &out, const vector<int> &bitsetIndices);
     friend int operator-(const RandomNumberSet &randomNumberSet);
 
@@ -27,7 +28,7 @@ public:
 
 
 //<< operator overloading. Takes bitset
- ostream & operator<<(ostream &out, const vector<bool> &randomNumberBitVector)
+ostream & operator<<(ostream &out, const vector<bool> &randomNumberBitVector)
 {
     for (int i = 0; i < randomNumberBitVector.size(); i++) {
         if(randomNumberBitVector[i] == true){
@@ -39,46 +40,40 @@ public:
 }
 
 int operator-(RandomNumberSet & randomNumberSet1, RandomNumberSet& randomNumberSet2 ) {
+    std::set_intersection(randomNumberSet1.bitsetIndices.begin(),randomNumberSet1.bitsetIndices.end()
+            ,randomNumberSet2.bitsetIndices.begin(),randomNumberSet2.bitsetIndices.end(),
+                          std::back_inserter(randomNumberSet1.differenceVector));
 
-        if(randomNumberSet1.randomNumberBitVector == randomNumberSet2.randomNumberBitVector) {
-            return 0;
-        }
-
-        else {
-            return (randomNumberSet1.randomNumberBitset ^ randomNumberSet2.randomNumberBitset).count();
-
-        }
-
+    return randomNumberSet1.bitsetIndices.size() > randomNumberSet2.bitsetIndices.size() ?
+           randomNumberSet1.bitsetIndices.size() - randomNumberSet1.differenceVector.size():randomNumberSet2.bitsetIndices.size()-randomNumberSet1.differenceVector.size();
 }
 
 
 RandomNumberSet :: RandomNumberSet() {
-    randomNumberBitVector.resize(39);
-    differenceVector.resize(0);
- }
+    randomNumberBitVector.resize(39,0);
+}
 
 RandomNumberSet ::RandomNumberSet(int n) {
-     randomNumberBitVector.resize(n);
-    differenceVector.resize(0);
+    vector<bool> randomNumberBitVector (n,0);
 }
 
 void RandomNumberSet::reset() {
-//    randomNumberBitset.reset();
-//    bitsetIndices.clear();
-    randomNumberBitVector.clear();
+    randomNumberBitset.reset();
+    bitsetIndices.clear();
 }
 
 bool RandomNumberSet::set(int n) {
     if(0>=n<randomNumberBitVector.size()) {
         //return false when bit is already set
-        if(randomNumberBitVector[n]== true) {
+        if(randomNumberBitset[n]==1) {
             return false;
         }
-        //else set the bit and return true
+            //else set the bit and return true
         else {
-            if(count(randomNumberBitVector.begin(),randomNumberBitVector.end(),true) < 5){
-                randomNumberBitVector[n] = true;
+            if(randomNumberBitset.count() < 5){
                 randomNumberBitset[n] = 1;
+                randomNumberBitVector[n] = true;
+                bitsetIndices.push_back(n);
                 return true;
             }
 
@@ -88,37 +83,53 @@ bool RandomNumberSet::set(int n) {
         }
     }
 
-    //return false if you pass an integer less than 0 and greater than 39
+        //return false if you pass an integer less than 0 and greater than 39
     else{
         return false;
     }
 }
 
 int RandomNumberSet::size() const {
-    return count(randomNumberBitVector.begin(),randomNumberBitVector.end(),true);
+    return randomNumberBitset.count();
 }
 
+vector<int> RandomNumberSet::storeIndices()  {
+    //loop through bitset. If the bit is set, push this to a vector
+    for (int i = 0; i < randomNumberBitset.size(); i++) {
+        if(randomNumberBitset[i]==1){
+            bitsetIndices.push_back(i);
+        }
+    }
+
+    return bitsetIndices;
+
+}
 
 int main () {
 
-     RandomNumberSet randomNumberSet1 = RandomNumberSet(100);
-     randomNumberSet1.set(2);
-     randomNumberSet1.set(3);
-    randomNumberSet1.set(6);
-    cout << randomNumberSet1.randomNumberBitVector << endl;
+    RandomNumberSet randomNumberSet1;
+    randomNumberSet1.set(1);
+    randomNumberSet1.set(2);
+    randomNumberSet1.set(3);
+    randomNumberSet1.set(5);
+    randomNumberSet1.set(11);
 
+    cout << randomNumberSet1.randomNumberBitVector<< endl;
 
-    RandomNumberSet randomNumberSet2 = RandomNumberSet(100);
+    RandomNumberSet randomNumberSet2;
     randomNumberSet2.set(1);
+    randomNumberSet2.set(2);
     randomNumberSet2.set(3);
-    randomNumberSet2.set(6);
+    randomNumberSet2.set(4);
+    randomNumberSet2.set(11);
 
     cout << randomNumberSet2.randomNumberBitVector<< endl;
 
     int size = randomNumberSet1 - randomNumberSet2;
-    cout << size;
+    cout << "Difference is: "<< size;
+    return 0;
 
- }
+}
 
 
 
